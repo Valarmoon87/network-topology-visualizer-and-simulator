@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Intelligent Network Topology Visualizer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <!-- Auth Screen Overlay -->
+    <div id="auth-modal" class="auth-modal">
+        <div class="auth-container">
+            <div class="auth-header">
+                <i class="fa-solid fa-network-wired"></i>
+                <h2>NetViz AI</h2>
+            </div>
+            
+            <div class="auth-tabs">
+                <button id="tab-login" class="auth-tab active">Login</button>
+                <button id="tab-signup" class="auth-tab">Sign Up</button>
+            </div>
+            
+            <!-- Login Form -->
+            <form id="login-form" class="auth-form">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="login-user" required placeholder="Enter your username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-pass" required placeholder="Enter password">
+                </div>
+                <button type="submit" class="btn primary-btn">Login</button>
+            </form>
+
+            <!-- Signup Form -->
+            <form id="signup-form" class="auth-form hidden">
+                <div class="form-group">
+                    <label>Username</label>
+                    <input type="text" id="signup-user" required placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label>Email</label>
+                    <input type="email" id="signup-email" required placeholder="Enter email">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="signup-pass" required placeholder="Create a password">
+                </div>
+                <button type="submit" class="btn primary-btn" style="background:var(--info);">Sign Up</button>
+            </form>
+            
+            <p id="auth-error-msg" class="auth-error"></p>
+        </div>
+    </div>
+
+    <div class="app-container" id="app-container" style="display:none;">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <i class="fa-solid fa-network-wired"></i>
+                <h2>NetViz AI</h2>
+            </div>
+            
+            <div class="device-section">
+                <h3><i class="fa-solid fa-toolbox"></i> Devices</h3>
+                <p class="subtitle">Drag & Drop</p>
+                <div class="devices-list">
+                    <div class="device-item" draggable="true" data-type="pc">
+                        <div class="device-icon"><img src="assets/pc.png" class="d3-icon" alt="PC"></div>
+                        <span>PC</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="server">
+                        <div class="device-icon" style="background:rgba(5, 150, 105, 0.1)"><img src="assets/server.png" class="d3-icon" alt="Server"></div>
+                        <span>Server</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="switch">
+                        <div class="device-icon" style="background:rgba(37, 99, 235, 0.1)"><img src="assets/switch.png" class="d3-icon" alt="Switch"></div>
+                        <span>Switch</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="router">
+                        <div class="device-icon" style="background:rgba(220, 38, 38, 0.1)"><img src="assets/router.png" class="d3-icon" alt="Router"></div>
+                        <span>Router</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="hub">
+                        <div class="device-icon" style="background:rgba(217, 119, 6, 0.1)"><img src="assets/hub.png" class="d3-icon" alt="Hub"></div>
+                        <span>Hub</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="bridge">
+                        <div class="device-icon" style="background:rgba(79, 70, 229, 0.1)"><img src="assets/bridge.png" class="d3-icon" alt="Bridge"></div>
+                        <span>Bridge</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="ap">
+                        <div class="device-icon" style="background:rgba(8, 145, 178, 0.1)"><img src="assets/ap.png" class="d3-icon" alt="AP"></div>
+                        <span>Access Point</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="firewall">
+                        <div class="device-icon" style="background:rgba(190, 18, 60, 0.1)"><img src="assets/firewall.png" class="d3-icon" alt="Firewall"></div>
+                        <span>Firewall</span>
+                    </div>
+                    <div class="device-item" draggable="true" data-type="modem">
+                        <div class="device-icon" style="background:rgba(71, 85, 105, 0.1)"><img src="assets/modem.png" class="d3-icon" alt="Modem"></div>
+                        <span>Modem</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls-section">
+                <h3><i class="fa-solid fa-sliders"></i> Controls</h3>
+                <div class="control-row">
+                    <button id="btn-simulate" class="btn primary-btn"><i class="fa-solid fa-play"></i> Start Simulation</button>
+                    <button id="btn-download" class="btn secondary-btn" title="Download Screenshot"><i class="fa-solid fa-camera"></i> Snapshot</button>
+                </div>
+                <div class="control-row">
+                    <button id="btn-save-pki" class="btn secondary-btn"><i class="fa-solid fa-floppy-disk"></i> Save .PKI</button>
+                    <button id="btn-clear" class="btn secondary-btn"><i class="fa-solid fa-trash-can"></i> Clear Canvas</button>
+                </div>
+                <div class="control-row">
+                    <button id="btn-help" class="btn secondary-btn" style="flex:1;">
+                        <i class="fa-solid fa-circle-question"></i> Help
+                    </button>
+                </div>
+            </div>
+
+            <div class="learning-section">
+                <h3><i class="fa-solid fa-graduation-cap"></i> Tasks</h3>
+                <div class="task-card">
+                    <span class="task-label">Current:</span>
+                    <p id="current-task">Freestyle Exploration</p>
+                    <div class="task-actions">
+                        <button class="task-btn" data-task="Star">Star</button>
+                        <button class="task-btn" data-task="Bus">Bus</button>
+                        <button class="task-btn" data-task="Ring">Ring</button>
+                        <button class="task-btn" data-task="Mesh">Mesh</button>
+                        
+                        <div style="width:100%; border-top:1px dashed #cbd5e1; margin:0.4rem 0;"></div>
+                        <span style="width:100%; font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; font-weight:700; text-align:center;">Hybrid Goals</span>
+                        
+                        <button class="task-btn hybrid-btn" data-task="Star-Bus" title="Combine Star and Bus">Star+Bus</button>
+                        <button class="task-btn hybrid-btn" data-task="Star-Ring" title="Combine Star and Ring">Star+Ring</button>
+                        <button class="task-btn hybrid-btn" data-task="Star-Mesh" title="Combine Star and Mesh">Star+Mesh</button>
+                    </div>
+                    <button id="btn-verify-task" class="btn primary-btn hidden">Verify Task</button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header Status -->
+            <header class="top-bar">
+                <div class="status-panel">
+                    <div class="status-item topology-info">
+                        <i class="fa-solid fa-chart-network" style="color: var(--accent);"></i>
+                        <span class="label">Topology:</span>
+                        <span id="topology-detect" class="value badge">None</span>
+                    </div>
+                    <button id="btn-show-topology-info" class="btn text-btn hidden"><i class="fa-solid fa-book-open"></i> Read More</button>
+                </div>
+                
+                <div class="user-profile-panel" style="display:flex; align-items:center;">
+                    <button id="theme-toggle" class="btn text-btn" style="color:var(--text-secondary); font-size:1.2rem; padding:0.4rem; margin-right: 15px;" title="Toggle Theme"><i class="fa-solid fa-moon"></i></button>
+                    <span id="welcome-user-text" class="label" style="margin-right:10px; font-weight:600; color:var(--text-secondary);">Welcome, User</span>
+                    <button id="btn-logout" class="btn text-btn" style="color:var(--error); padding: 0.4rem 0.8rem; border: 1px solid #fca5a5; display:inline-block;"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </div>
+            </header>
+
+            <!-- Explanation Panel -->
+            <div id="explanation-panel" class="explanation-panel hidden">
+                <div class="explanation-content">
+                    <i id="expl-icon" class="fa-solid fa-lightbulb"></i>
+                    <div>
+                        <strong id="expl-title">Smart Assistant</strong>
+                        <p id="explanation-text"></p>
+                    </div>
+                </div>
+                <button id="close-explanation" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Error Notification -->
+            <div id="toast-container" class="toast-container"></div>
+
+            <!-- Canvas Area -->
+            <div id="canvas" class="canvas-area">
+                <svg id="connection-svg" class="connection-svg"></svg>
+                <!-- Dropped devices will be appended here -->
+                
+                <!-- Moving Instructor Mascot -->
+                <div id="instructor-mascot" class="instructor-mascot">
+                    <div class="speech-bubble" id="instructor-speech">Follow me to build networks!</div>
+                    <svg width="60" height="80" viewBox="0 0 60 80" xmlns="http://www.w3.org/2000/svg" class="toddler-bot">
+                        <!-- Shadow -->
+                        <ellipse cx="30" cy="78" rx="20" ry="4" fill="rgba(0,0,0,0.15)" />
+                        <!-- Legs -->
+                        <rect x="20" y="55" width="7" height="20" rx="3.5" fill="var(--text-secondary)" class="leg1"/>
+                        <rect x="33" y="55" width="7" height="20" rx="3.5" fill="var(--text-secondary)" class="leg2"/>
+                        <!-- Body -->
+                        <rect x="15" y="30" width="30" height="28" rx="10" fill="var(--accent)" />
+                        <rect x="18" y="35" width="24" height="20" rx="6" fill="rgba(255,255,255,0.2)" /> <!-- Chest Plate -->
+                        <!-- Arms -->
+                        <rect x="5" y="32" width="7" height="22" rx="3.5" fill="var(--text-secondary)" class="arm1"/>
+                        <rect x="48" y="32" width="7" height="22" rx="3.5" fill="var(--text-secondary)" class="arm2"/>
+                        <!-- Head -->
+                        <rect x="8" y="4" width="44" height="26" rx="10" fill="var(--surface-border)" />
+                        <rect x="12" y="8" width="36" height="18" rx="6" fill="#0f172a" /> <!-- Visor -->
+                        <!-- Eyes -->
+                        <circle cx="22" cy="17" r="4" fill="var(--accent)" class="eye"/>
+                        <circle cx="38" cy="17" r="4" fill="var(--accent)" class="eye"/>
+                        <!-- Antenna -->
+                        <line x1="30" y1="4" x2="30" y2="0" stroke="var(--text-secondary)" stroke-width="2"/>
+                        <circle cx="30" cy="0" r="3" fill="var(--error)"/>
+                    </svg>
+                </div>
+            </div>
+            
+        </main>
+    </div>
+
+    <!-- AI Chatbot Helper -->
+    <div id="ai-chatbot" class="ai-chatbot hidden">
+        <div class="chatbot-header">
+            <span style="display:flex; align-items:center; gap:0.5rem;"><i class="fa-solid fa-robot"></i> AI Helper Bot</span>
+            <button id="close-chat" class="close-btn" style="color:white;"><i class="fa-solid fa-chevron-down"></i></button>
+        </div>
+        <div class="chatbot-messages" id="chatbot-messages">
+            <div class="bot-msg">Hi! I'm here to clear your doubts. Try asking me "What is a Star topology?" or "How does a switch work?".</div>
+        </div>
+        <div class="chatbot-input">
+            <input type="text" id="chat-input" placeholder="Ask a question..." autocomplete="off">
+            <button id="btn-send-chat" class="btn primary-btn" style="margin:0; width:auto; padding:0.5rem 1rem;"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+    <button id="btn-open-chat" class="floating-chat-btn"><i class="fa-solid fa-message"></i> Ask AI Helper</button>
+
+    <!-- Topology Info Modal -->
+    <div id="topology-modal" class="modal hidden">
+        <div class="modal-content">
+            <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <i class="fa-solid fa-diagram-project"></i>
+                <h2 id="topo-name">Topology Details</h2>
+            </div>
+            <div class="modal-body">
+                <div class="info-section">
+                    <h3>Description</h3>
+                    <p id="topo-desc"></p>
+                </div>
+                <div class="info-section">
+                    <h3>How Devices Connect</h3>
+                    <p id="topo-how"></p>
+                </div>
+                <div class="info-section">
+                    <h3>Advantages</h3>
+                    <ul id="topo-adv"></ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Learning Output Modal (After Simulation) -->
+    <div id="learning-modal" class="modal hidden">
+        <div class="modal-content large-modal">
+            <button class="close-modal"><i class="fa-solid fa-xmark"></i></button>
+            <div class="modal-header">
+                <i class="fa-solid fa-chalkboard-user"></i>
+                <h2>Simulation Analysis</h2>
+            </div>
+            <div class="modal-body">
+                <div class="info-section">
+                    <h3>Step-by-Step Data Flow</h3>
+                    <ul id="sim-flow-desc"></ul>
+                </div>
+                <div class="info-section">
+                    <h3>Role of Devices Used</h3>
+                    <p id="sim-roles"></p>
+                </div>
+                <div class="info-section" id="sim-feedback-box">
+                    <h3 id="sim-feedback-title">Topology Feedback</h3>
+                    <p id="sim-feedback-text"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Celebration Screen -->
+    <div id="celebration-screen" class="celebration-screen hidden">
+        <div class="celebration-content">
+            <div class="trophy-icon"><i class="fa-solid fa-award"></i></div>
+            <h2>Task Completed!</h2>
+            <p id="celebration-msg">You successfully built the topology.</p>
+            <button id="btn-continue" class="btn primary-btn">Continue Exploring</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
